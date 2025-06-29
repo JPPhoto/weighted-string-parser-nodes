@@ -18,13 +18,14 @@ class WeightedStringOutput(BaseInvocationOutput):
     cleaned_text: str = OutputField(description="The input string with weights and parentheses removed")
     phrases: list[str] = OutputField(description="List of weighted phrases or words")
     weights: list[float] = OutputField(description="Associated weights for each phrase")
+    positions: list[int] = OutputField(description="Start positions of each phrase in the cleaned string")
 
 
 @invocation(
-    "parse_weighted_string", title="Parse Weighted String", tags=["prompt", "weights", "parser"], version="1.0.0"
+    "parse_weighted_string", title="Parse Weighted String", tags=["prompt", "weights", "parser"], version="1.0.1"
 )
 class ParseWeightedStringInvocation(BaseInvocation):
-    """Parses a string containing weighted terms (e.g. `(word)++` or `word-`) and returns the cleaned string, list of terms, and their weights."""
+    """Parses a string containing weighted terms (e.g. `(word)++` or `word-`) and returns the cleaned string, list of terms, their weights, and positions."""
 
     text: str = InputField(description="The input string containing weighted expressions")
 
@@ -41,14 +42,26 @@ class ParseWeightedStringInvocation(BaseInvocation):
         """
         words = []
         weights = []
+        positions = []
 
-        def replacement(m):
-            if m.group(1):  # Parenthesized
-                word = m.group(1).strip()
-                modifier = m.group(2)
+        cleaned = []
+        cursor = 0
+        last_end = 0
+
+        for match in re.finditer(pattern, s, flags=re.VERBOSE):
+            start, end = match.span()
+
+            # Append unchanged text from last_end to match start
+            unchanged = s[last_end:start]
+            cleaned.append(unchanged)
+            cursor += len(unchanged)
+
+            if match.group(1):  # Parenthesized
+                word = match.group(1).strip()
+                modifier = match.group(2)
             else:  # Bare word
-                word = m.group(3).strip()
-                modifier = m.group(4)
+                word = match.group(3).strip()
+                modifier = match.group(4)
 
             if modifier.startswith("+"):
                 weight = 1.1 ** len(modifier)
@@ -59,11 +72,17 @@ class ParseWeightedStringInvocation(BaseInvocation):
 
             words.append(word)
             weights.append(round(weight, 15))
-            return word
+            positions.append(cursor)
 
-        cleaned = re.sub(pattern, replacement, s, flags=re.VERBOSE)
+            cleaned.append(word)
+            cursor += len(word)
+            last_end = end
+
+        # Append the tail of the string
+        cleaned.append(s[last_end:])
+        final = "".join(cleaned)
 
         # Unescape any escaped parens
-        cleaned = re.sub(r"\\([\(\)])", r"\1", cleaned)
+        final = re.sub(r"\\([\(\)])", r"\1", final)
 
-        return WeightedStringOutput(cleaned_text=cleaned, phrases=words, weights=weights)
+        return WeightedStringOutput(cleaned_text=final, phrases=words, weights=weights, positions=positions)
