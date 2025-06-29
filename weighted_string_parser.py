@@ -33,10 +33,12 @@ class ParseWeightedStringInvocation(BaseInvocation):
         s = self.text
 
         # Match unescaped parenthesized terms or bare words followed by +, -, or numbers
+        # Group 1+2: (term)+weight with trailing space, punctuation, or EOS
+        # Group 3+4: word+weight with trailing space, punctuation, or EOS
         pattern = r"""
-            (?<!\\)\(([^()]+?)\)([\+\-]+|[-+]?\d*\.?\d+)(?=\s|$)  # Group 1+2: (term)+weight with trailing space or EOS
+            (?<!\\)\(([^()]+?)\)([\+\-]+|[-+]?\d*\.?\d+)(?=[\s,.;:!?)]|$)
             |
-            \b(\w+)\b([\+\-]+|[-+]?\d*\.?\d+)(?=\s|$)             # Group 3+4: word+weight with trailing space or EOS
+            \b(\w+)\b([\+\-]+|[-+]?\d*\.?\d+)(?=[\s,.;:!?)]|$)
         """
         words = []
         weights = []
