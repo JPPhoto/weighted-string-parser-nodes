@@ -1,7 +1,6 @@
 # Copyright (c) 2025 Jonathan S. Pollack (https://github.com/JPPhoto)
 
 import re
-from typing import List
 
 from invokeai.invocation_api import (
     BaseInvocation,
@@ -17,8 +16,8 @@ from invokeai.invocation_api import (
 @invocation_output("weighted_string_output")
 class WeightedStringOutput(BaseInvocationOutput):
     cleaned_text: str = OutputField(description="The input string with weights and parentheses removed")
-    phrases: List[str] = OutputField(description="List of weighted phrases or words")
-    weights: List[float] = OutputField(description="Associated weights for each phrase")
+    phrases: list[str] = OutputField(description="List of weighted phrases or words")
+    weights: list[float] = OutputField(description="Associated weights for each phrase")
 
 
 @invocation(
