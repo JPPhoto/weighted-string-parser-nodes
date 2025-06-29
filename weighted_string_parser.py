@@ -34,9 +34,9 @@ class ParseWeightedStringInvocation(BaseInvocation):
 
         # Match unescaped parenthesized terms or bare words followed by +, -, or numbers
         pattern = r"""
-            (?<!\\)\(([^()]+?)\)([\+\-]+|[-+]?\d*\.?\d+)  # Group 1+2: (term)+weight
+            (?<!\\)\(([^()]+?)\)([\+\-]+|[-+]?\d*\.?\d+)(?=\s|$)  # Group 1+2: (term)+weight with trailing space or EOS
             |
-            \b(\w+)\b([\+\-]+|[-+]?\d*\.?\d+)             # Group 3+4: word+weight
+            \b(\w+)\b([\+\-]+|[-+]?\d*\.?\d+)(?=\s|$)             # Group 3+4: word+weight with trailing space or EOS
         """
         words = []
         weights = []
