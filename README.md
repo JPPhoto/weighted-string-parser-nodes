@@ -12,5 +12,7 @@ Input:
 Outputs:
 
 `a bog bear in a green chundle factory, with blue greezles (credit: Bog Magazine)`
+
 `['bog bear', 'blue', 'greezles']`
+
 `[1.21, 0.9, 0.81]`
